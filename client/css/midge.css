@@ -1,0 +1,121 @@
+
+@import url('https://fonts.googleapis.com/css?family=Dosis');
+@import url('https://fonts.googleapis.com/css?family=Coiny');
+
+html{
+  height: 100%;
+  background-color: #346c70;
+  /*background: transparent;
+  background: radial-gradient(grey 5%, black 90%);*/
+}
+body{
+
+  background-color: #346c70;
+}
+.jumbotron {
+  position: absolute;
+  top: 50%;
+  left:50%;
+  transform: translate(-50%,-50%);
+  padding-top: 0;
+  padding-left: 0;
+}
+
+.oversign{
+  position:absolute;
+  height: 30px;
+  width: 100%;
+  background: #6c757d;
+  text-align: center;
+}
+.title-important{
+}
+
+.triangle-up-left {
+    width: 0;
+    height: 0;
+    padding-bottom: 20%;
+    padding-left: 20%;
+    overflow: hidden;
+}
+.triangle-up-left:after {
+    content: "";
+    display: block;
+    width: 0;
+    height: 0;
+    margin-left: -500px;
+    border-bottom: 500px solid transparent;
+    border-left: 500px solid #6c757d;
+}
+
+.footer{
+  position: fixed;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  background-color: white;
+  color: black;
+
+}
+
+.mrg{
+  margin: 15px;
+}
+
+canvas{
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  background-color: #346c70;
+}
+
+.contain{
+  float: left;
+}
+
+.contain canvas, .overlay{
+  position: absolute;
+  bottom: 0;
+}
+
+.msg{
+  color: white;
+  font-family: "Lucida Console", Monaco, monospace;
+  font-size: 12pt;
+  padding: 0.5px;
+  margin: 0;
+  position: relative;
+}
+
+.chat{
+  margin-left: 10px;
+  opacity: 0.4;
+}
+
+.messages{
+  height: 100px;
+  width: 600px;
+  overflow-y:scroll;
+  word-wrap: break-word;
+}
+
+.typesend{
+  background: transparent;
+  border: 1px solid white;
+  border-top: 0;
+  border-left: 0;
+  color: white;
+  font-family: "Lucida Console", Monaco, monospace;
+  font-size: 13pt;
+  outline: none;
+}
+
+.typesend:focus{
+  background: transparent;
+  border: 4px solid white;
+  border-top: 0;
+  border-left: 0;
+  color: white;
+  font-family: "Lucida Console", Monaco, monospace;
+  font-size: 9pt;
+}

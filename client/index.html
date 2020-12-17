@@ -1,0 +1,310 @@
+<html>
+  <head>
+    <link rel="stylesheet" type="text/css" href="/css/bootstrap.css" />
+    <link rel="stylesheet" type="text/css" href="/css/midge.css" />
+
+    <meta name="viewport" content="width=device-width user-scalable=no">
+  </head>
+  <body>
+    <div class="jumbotron rounded"id="signDiv">
+      <div class="oversign">
+        <h1 class="h1 title-important"></h1>
+      </div>
+      <div class="triangle-up-left"></div>
+      <div class='mrg input-group mb-3'>
+
+        <div class="input-group-prepend">
+          <span class="input-group-text" id="basic-addon1">@</span>
+        </div>
+        <input type="text" class="form-control" id="signDiv-username" placeholder="Username" aria-describedby="sizing-addon2"/>
+      </div>
+
+      <div class="mrg input-group mb-3">
+        <input type="password" class="form-control" id="signDiv-password" placeholder="Password" aria-describedby="sizing-addon2" />
+      </div>
+      <div class="btn-group float-right" role="group" aria-label="">
+        <button type="button" class="btn btn-secondary" id="signDiv-signIn">Sign In</button>
+        <button type="button" class="btn btn-outline-secondary" id="signDiv-signUp">Sign Up</button>
+      </div>
+
+    </div>
+    <footer class="footer page-footer" id="footer">
+        <div class="footer-copyright py-3 text-center">
+            &copy; Midge.xyz 2018
+            <a href="mailto:d.bassan@hotmail.it">Davide Bassan </a>
+        </div>
+    </footer>
+
+    <div class="contain" id="gameDiv"  style="display: none;">
+      <canvas id="ctx"></canvas>
+      <div class="overlay chat">
+        <div class="messages" id="chat-text">
+          <p class="msg">Server: Welcome!</p>
+        </div>
+        <form id="chat-form">
+          <input class="typesend" id="chat-input" type="text" autocomplete="off"></input>
+        </form>
+      </div>
+    </div>
+
+    <script src="https://cdn.socket.io/socket.io-1.4.5.js"></script>
+
+    <script>
+
+      var socket = io();
+
+      //sign
+      var signDiv = document.getElementById('signDiv');
+      var signDivUsername = document.getElementById('signDiv-username');
+      var signDivSignIn = document.getElementById('signDiv-signIn');
+      var signDivSingUp = document.getElementById('signDiv-signUp');
+      var signDivPassword = document.getElementById('signDiv-password');
+      var footer = document.getElementById('footer');
+
+      signDivSignIn.onclick = function(){
+        socket.emit('signIn',{username:signDivUsername.value, password:signDivPassword.value});
+      }
+      socket.on('signInResponse', function(data){
+        if(data.success){
+          footer.style.display = 'none';
+          signDiv.style.display = 'none';
+          gameDiv.style.display = 'inline-block';
+        }
+        else {
+          alert('Incorrect username or password');
+        }
+      });
+
+      signDivSingUp.onclick = function(){
+        socket.emit('signUp',{username:signDivUsername.value, password:signDivPassword.value});
+      }
+
+      socket.on('signUpResponse', function(data){
+        if(data.success){
+          footer.style.display = 'none';
+          signDiv.style.display = 'none';
+          gameDiv.style.display = 'inline-block';
+        }
+        else {
+          alert('Nickname already used');
+        }
+      });
+
+      //chat
+      var chatText = document.getElementById('chat-text');
+      var chatInput = document.getElementById('chat-input');
+      var chatForm = document.getElementById('chat-form');
+
+      socket.on('addToChat', function(data){
+        chatText.innerHTML += '<p class="msg text-justify">' + data + '</p>';
+        chatText.scrollTop = chatText.scrollHeight;
+      });
+
+      socket.on('evalAnswer', function(data){
+        console.log(data);
+      });
+
+
+      chatForm.onsubmit = function(event){
+        event.preventDefault(); //Evita che ritorni alla home
+        if(chatInput.value.length<2)
+          return
+        if(chatInput.value[0] === '/')
+          socket.emit('evalServer', chatInput.value.slice(1));
+        else
+          socket.emit('sendMsgToServer', chatInput.value);
+        chatInput.value = '';
+      }
+
+
+      //game
+      map = new Image();
+      map.src = '/img/map.png';
+
+
+
+      var c = document.getElementById("ctx");
+      var ctx = document.getElementById("ctx").getContext("2d");
+      c.width = window.innerWidth;
+      c.height = window.innerHeight;
+      ctx.font = '20px Arial';
+
+      var Player = function(initPack){
+        var self = {};
+        self.id = initPack.id;
+        self.username = initPack.username;
+        self.number = initPack.number;
+        self.x = initPack.x;
+        self.y = initPack.y;
+        self.hp = initPack.hp;
+        self.hpMax = initPack.hpMax;
+        self.score = initPack.score;
+        self.rotation = initPack.rotation;
+        self.color = initPack.color;
+
+        self.draw = function(){
+          var x = self.x - Player.list[selfId].x + c.width/2;
+          var y = self.y - Player.list[selfId].y + c.height/2;
+
+          ctx.font = "30px Arial";
+          ctx.fillStyle='white';
+          ctx.fillStyle='black';
+
+          ctx.font = "30px Dosis";
+          ctx.fillText("Rotation: " + Player.list[selfId].rotation, 30,90);
+          ctx.save();
+
+          ctx.beginPath();
+          ctx.translate(x,y);
+          ctx.rotate(self.rotation);
+          ctx.fillRect(50/-2,50/-2,50,50);
+          ctx.fillStyle='white';
+          ctx.strokeStyle="white";
+          ctx.strokeRect(47/-2,47/-2,47,47);
+          ctx.moveTo(0,-25);
+          ctx.lineTo(-25,-25);
+          ctx.lineTo(-25,0);
+          ctx.lineTo(0,-25);
+          ctx.fill();
+
+          ctx.restore();
+
+        }
+
+
+
+        Player.list[self.id] = self;
+        return self;
+      };
+
+      Player.list = {};
+
+      var selfId = null;
+      socket.on('init', function(data){
+        if(data.selfId)
+          selfId = data.selfId;
+        for(var i = 0 ; i < data.player.length; i++)
+            new Player(data.player[i]);
+      });
+
+      socket.on('update', function(data){
+        for(var i = 0; i < data.player.length; i++){
+          var pack = data.player[i];
+          var p = Player.list[pack.id];
+          if(pack.id == selfId)
+            if(pack.lose){
+              footer.style.display = '';
+              signDiv.style.display = '';
+              gameDiv.style.display = 'none';
+            }
+
+          if(p){
+            if(pack.x !== undefined)
+              p.x = pack.x;
+            if(pack.y !== undefined)
+              p.y = pack.y;
+            if(pack.hp !== undefined)
+              p.hp = pack.hp;
+            if(pack.hpMax !== undefined)
+              p.hpMax = pack.hpMax;
+            if(pack.score !== undefined)
+              p.score = pack.score;
+            if(pack.rotation !== undefined)
+              p.rotation = pack.rotation;
+          }
+        }
+      });
+
+      socket.on('remove', function(data){
+        for(var i = 0; i < data.player.length; i++)
+          delete Player.list[data.player[i]];
+
+      });
+
+      setInterval(function(){
+
+        if(!selfId)
+          return;
+        ctx.clearRect(0,0,c.width,c.height);
+        drawMap();
+        drawScore();
+        for(var i in Player.list){
+          Player.list[i].draw();
+        }
+      },15);
+
+
+
+
+      offsetx = 0;
+      offsety = 0;
+
+
+
+
+      // // TODO:
+      //   //Sitemare mappa di sfondo che non funziona
+      var drawMap = function(){
+
+      //
+      //   var x = c.width/2 - Player.list[selfId].x;
+      //   var y = c.height/2 - Player.list[selfId].y;
+      //
+      //   ctx.drawImage(map,offsetx,offsety);
+      //
+      //   ctx.fillStyle=pat;
+      //
+      //   ctx.fill();
+      //
+      //   if(offsetx > c.width)
+      //     offsetx = 0;
+      //   if(offsety > c.height)
+      //     offsety = 0;
+       }
+
+      var drawScore = function(){
+        ctx.font = "30px Dosis";
+        ctx.fillText("Score: " + Player.list[selfId].score, 30,50);
+        ctx.fillText("x: " + Player.list[selfId].x, c.width-100, 50);
+        ctx.fillText("y: " + Player.list[selfId].y, c.width-100, 90);
+
+      }
+
+      document.onkeydown = function(event){
+        if(event.keyCode === 68){
+          socket.emit('keyPress',{inputId:'right',state: true});
+          offsetx += 10;
+        }
+        if(event.keyCode === 83){
+          socket.emit('keyPress',{inputId:'down',state: true});
+          offsety -= 10;
+        }
+        if(event.keyCode === 65){
+          socket.emit('keyPress',{inputId:'left',state: true});
+          offsetx -= 10;
+        }
+        if(event.keyCode === 87){
+          socket.emit('keyPress',{inputId:'up',state: true});
+          offsety += 10;
+        }
+      }
+      document.onkeyup = function(event){
+        if(event.keyCode === 68)
+          socket.emit('keyPress',{inputId:'right',state: false});
+        if(event.keyCode === 83)
+          socket.emit('keyPress',{inputId:'down',state: false});
+        if(event.keyCode === 65)
+          socket.emit('keyPress',{inputId:'left',state: false});
+        if(event.keyCode === 87)
+          socket.emit('keyPress',{inputId:'up',state: false});
+      }
+
+      document.onmousemove = function(event){
+          xangle = event.x;
+          yangle = event.y;
+          socket.emit('mouseDown',{xw: c.width/2, yw:c.height/2, xm:xangle,ym:yangle});
+      }
+
+    </script>
+  </body>
+</html>
