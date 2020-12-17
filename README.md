@@ -1,6 +1,6 @@
 # Midge
 # A simple online multiplayer videogame created in Javascript - Node.js, html and css
-
+# For Full Documentation view "Davide Bassan.pdf"
 # Documentation
 
 ISTITUTO TECNICO INDUSTRIALE GALILEO FERRARIS
