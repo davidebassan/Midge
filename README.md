@@ -50,6 +50,14 @@ Aggiornamento:
 ```
 database.tabella.update({ { attributo: valore }, {$set{ attributo: valore }} })
 ```
+Cancellazione di un singolo record
+```
+database.tabella.removeOne({ chiave: valore }) 
+```
+Ricerca
+```
+database.tabella.find({ attributo: valore })
+```
 
 # 1.6 Comunicazione
 Nei giochi multi-giocatore è richiesta, come spiegato in precedenza, una adeguata comunicazione tra client e server, che in NodeJS viene gestita dal modulo Socket.io permettendo l’invio e la ricezione di pacchetti (socket) in real time.
@@ -57,7 +65,7 @@ Ogni socket può avere 4 stati:
 ● in connessione
 ● in disconnessione
 ● connesso
-● disconnesso database.tabella.removeOne({ chiave: valore }) database.tabella.find({ attributo: valore })
+● disconnesso 
 
 La trasmissione a sua volta può trovarsi in altre 4 differenti fasi:
 ● in apertura
